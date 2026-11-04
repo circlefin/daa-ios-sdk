@@ -1,0 +1,131 @@
+{
+  "profile": "daa-authkey-wire-v1",
+  "contract": "docs/authkey-wire-contract.md",
+  "p256PublicKey": {
+    "x963Hex": "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
+    "spkiBase64Url": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaxfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpZP40Li_hp_m47n60p8D54WK84zV2sxXs7LtkBoN79R9Q",
+    "jwkThumbprint": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+  },
+  "signedMessage": {
+    "name": "openssl-p256-sha256",
+    "messageHex": "44414120417574684b657920776972652076310a",
+    "publicKeyX963Hex": "04125d0d94cac0b7a78ecb8d35fc2b87620e43a45bdc207fc2ed4f606d48525b60a63cc04bcc5decd5c9607e66a521bdb585057f90e8bc0306137b81af1f02fbea",
+    "derHex": "30460221009ec14e469a98645531586220060989e6972c10b6670095e52a805d642cd925eb022100ed20b2ce70a9142be0e5971acc0c1d4d677a46e1d6601206777049b043649989",
+    "rawHex": "9ec14e469a98645531586220060989e6972c10b6670095e52a805d642cd925ebed20b2ce70a9142be0e5971acc0c1d4d677a46e1d6601206777049b043649989"
+  },
+  "ecdsaSignatures": [
+    {
+      "name": "r-high-bit-s-short",
+      "derHex": "30440221008000000000000000000000000000000000000000000000000000000000000000021f01000000000000000000000000000000000000000000000000000000000000",
+      "rawHex": "80000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "r-short-s-high-bit",
+      "derHex": "3044021f010000000000000000000000000000000000000000000000000000000000000221008000000000000000000000000000000000000000000000000000000000000000",
+      "rawHex": "00010000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "r-group-order-minus-one",
+      "derHex": "3026022100ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632550020101",
+      "rawHex": "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc6325500000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ],
+  "rejected": {
+    "ecdsaDer": [
+      {
+        "name": "empty-sequence",
+        "hex": "3000"
+      },
+      {
+        "name": "zero-r",
+        "hex": "3006020100020101"
+      },
+      {
+        "name": "r-equals-group-order",
+        "hex": "3026022100ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551020101"
+      },
+      {
+        "name": "negative-r",
+        "hex": "3006020180020101"
+      },
+      {
+        "name": "unnecessary-integer-padding",
+        "hex": "300702020001020101"
+      },
+      {
+        "name": "non-minimal-integer-length",
+        "hex": "300702810101020101"
+      },
+      {
+        "name": "non-minimal-sequence-length",
+        "hex": "308106020101020101"
+      },
+      {
+        "name": "overflowing-integer-length",
+        "hex": "300602847fffffff"
+      },
+      {
+        "name": "trailing-byte",
+        "hex": "300602010102010100"
+      }
+    ],
+    "ecdsaRaw": [
+      {
+        "name": "zero-r",
+        "hex": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+      },
+      {
+        "name": "zero-s",
+        "hex": "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "name": "r-equals-group-order",
+        "hex": "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc6325510000000000000000000000000000000000000000000000000000000000000001"
+      },
+      {
+        "name": "s-equals-group-order",
+        "hex": "0000000000000000000000000000000000000000000000000000000000000001ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551"
+      },
+      {
+        "name": "r-greater-than-group-order",
+        "hex": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      {
+        "name": "s-greater-than-group-order",
+        "hex": "0000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    ],
+    "x963PublicKeys": [
+      {
+        "name": "compressed",
+        "hex": "026b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296"
+      },
+      {
+        "name": "invalid-marker",
+        "hex": "036b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5"
+      },
+      {
+        "name": "off-curve",
+        "hex": "0400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "subjectPublicKeyInfo": [
+      {
+        "name": "invalid-sequence-tag",
+        "hex": "3159301306072a8648ce3d020106082a8648ce3d030107034200046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5"
+      },
+      {
+        "name": "truncated",
+        "hex": "3059301306072a8648ce3d020106082a8648ce3d030107034200046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51"
+      },
+      {
+        "name": "overlong",
+        "hex": "3059301306072a8648ce3d020106082a8648ce3d030107034200046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f500"
+      },
+      {
+        "name": "wrong-curve-oid",
+        "hex": "3059301306072a8648ce3d020106082a8648ce3d030108034200046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1893 @@
+{
+  "version": 1,
+  "profile": "daa-sca-callback-v1",
+  "description": "Cross-SDK conformance vectors for the SCA hosted-ceremony client: the redirect callback parser, redirect URI and ceremony-origin rules, ceremony timeouts, and the error vocabulary. The iOS SDK's Conformance/ScaCallbackV1.json is canonical; every copy must be byte-identical to it.",
+  "conventions": {
+    "generatedStrings": "Any string input may instead be {\"repeat\": s, \"count\": n} (s repeated n times) or {\"concat\": [parts]} (the parts, each a string or a generated string, joined). Oversized inputs are always generated, never inlined.",
+    "callbackOutcomes": {
+      "result": "The ceremony completed; result is the exact decoded payload text.",
+      "error": "The page reported code; message is the decoded message, or null when absent or not kept.",
+      "protocolError": "The callback is off contract and ends the ceremony.",
+      "stateMismatch": "iOS only: the callback's state is missing or not this ceremony's; ends the ceremony.",
+      "ignored": "Android only: the callback is not provably this ceremony's (wrong target, size or field cap, malformed fragment, missing or wrong state), so it is dropped and the ceremony keeps waiting."
+    },
+    "perPlatform": "Where the SDKs differ by design, expected is {\"ios\": outcome, \"android\": outcome}. The differences: iOS ends a ceremony on a callback it cannot attribute, Android ignores it; iOS caps the callback at 96 KiB, the payload at 64 KiB decoded, and the message at 1 KiB, Android caps the callback at 64 KiB and 12 fields."
+  },
+  "callbackVectors": [
+    {
+      "id": "result-registration",
+      "description": "A registration result relays the exact decoded payload text.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "registration",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=registration&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSW4wIiwiYXR0ZXN0YXRpb25PYmplY3QiOiJvMk5tYlhSa2JtOXVaUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "result",
+        "result": "{\"id\":\"AQIDBA\",\"rawId\":\"AQIDBA\",\"type\":\"public-key\",\"response\":{\"clientDataJSON\":\"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIn0\",\"attestationObject\":\"o2NmbXRkbm9uZQ\"}}"
+      }
+    },
+    {
+      "id": "result-challenge",
+      "description": "A challenge result relays the exact decoded payload text.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "result",
+        "result": "{\"id\":\"AQIDBA\",\"rawId\":\"AQIDBA\",\"type\":\"public-key\",\"response\":{\"clientDataJSON\":\"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0In0\",\"authenticatorData\":\"SZYN5Q\",\"signature\":\"MEUCIQ\"}}"
+      }
+    },
+    {
+      "id": "result-custom-scheme",
+      "description": "A result at a custom-scheme redirect URI.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "registration",
+        "callback": "acme://cb#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=registration&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSW4wIiwiYXR0ZXN0YXRpb25PYmplY3QiOiJvMk5tYlhSa2JtOXVaUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "result",
+        "result": "{\"id\":\"AQIDBA\",\"rawId\":\"AQIDBA\",\"type\":\"public-key\",\"response\":{\"clientDataJSON\":\"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIn0\",\"attestationObject\":\"o2NmbXRkbm9uZQ\"}}"
+      }
+    },
+    {
+      "id": "result-nested-repeated-member",
+      "description": "A member repeated below the top level is relayed as is.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJhIjp7ImIiOjEsImIiOjJ9fQ"
+      },
+      "expected": {
+        "outcome": "result",
+        "result": "{\"a\":{\"b\":1,\"b\":2}}"
+      }
+    },
+    {
+      "id": "error-cancelled",
+      "description": "The page's Cancelled code with no message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "error-cancelled-with-message",
+      "description": "The page's Cancelled code with a percent-encoded message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled&message=The%20ceremony%20ended."
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "error-expired",
+      "description": "The page's Expired code with no message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Expired",
+        "message": null
+      }
+    },
+    {
+      "id": "error-expired-with-message",
+      "description": "The page's Expired code with a percent-encoded message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=The%20ceremony%20ended."
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Expired",
+        "message": "The ceremony ended."
+      }
+    },
+    {
+      "id": "error-unsupported",
+      "description": "The page's Unsupported code with no message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Unsupported"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Unsupported",
+        "message": null
+      }
+    },
+    {
+      "id": "error-unsupported-with-message",
+      "description": "The page's Unsupported code with a percent-encoded message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Unsupported&message=The%20ceremony%20ended."
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Unsupported",
+        "message": "The ceremony ended."
+      }
+    },
+    {
+      "id": "error-already-enrolled",
+      "description": "The page's AlreadyEnrolled code with no message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=AlreadyEnrolled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "AlreadyEnrolled",
+        "message": null
+      }
+    },
+    {
+      "id": "error-already-enrolled-with-message",
+      "description": "The page's AlreadyEnrolled code with a percent-encoded message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=AlreadyEnrolled&message=The%20ceremony%20ended."
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "AlreadyEnrolled",
+        "message": "The ceremony ended."
+      }
+    },
+    {
+      "id": "error-message-at-1024",
+      "description": "A 1024-character message.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=",
+            {
+              "repeat": "m",
+              "count": 1024
+            }
+          ]
+        }
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Expired",
+        "message": {
+          "repeat": "m",
+          "count": 1024
+        }
+      }
+    },
+    {
+      "id": "error-message-over-1024",
+      "description": "A 1025-character message: over the iOS message cap; Android has none.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=",
+            {
+              "repeat": "m",
+              "count": 1025
+            }
+          ]
+        }
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "error",
+          "code": "Expired",
+          "message": {
+            "repeat": "m",
+            "count": 1025
+          }
+        }
+      }
+    },
+    {
+      "id": "error-message-literal-plus",
+      "description": "A literal + in a value stays a plus (decodeURIComponent, not form decoding).",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=a+b%2Bc"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Expired",
+        "message": "a+b+c"
+      }
+    },
+    {
+      "id": "error-unknown-code",
+      "description": "A code outside the page's four.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=NotEnrolled"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "error-code-wrong-case",
+      "description": "Codes are case-sensitive.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=cancelled"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "unknown-kind",
+      "description": "A kind other than result or error.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=pending"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "result-missing-payload",
+      "description": "A result with no payload.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "result-missing-ceremony",
+      "description": "A result with no ceremony.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "error-missing-code",
+      "description": "An error with no code.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "missing-kind",
+      "description": "No kind.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "result-extra-key",
+      "description": "A result with a key the page does not write.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ&extra=1"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "error-extra-ceremony-key",
+      "description": "An error carrying ceremony, which only a result has.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&ceremony=challenge"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "duplicate-kind-key",
+      "description": "A repeated key is never resolved first- or last-wins.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ&kind=result"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "duplicate-state-key",
+      "description": "A repeated state, even with the same value.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "fragment-thirteen-fields",
+      "description": "Thirteen fields: over the Android field cap; extra keys on iOS.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=m&x0=1&x1=1&x2=1&x3=1&x4=1&x5=1&x6=1&x7=1"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "fragment-empty-key",
+      "description": "A pair with no key.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled&=1"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "fragment-bad-percent-escape",
+      "description": "A malformed percent escape.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Expired&message=%ZZ"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "version-2",
+      "description": "v=2.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=2&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "version-missing",
+      "description": "No v.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "state-wrong",
+      "description": "Another ceremony's state.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=b3RoZXItY2VyZW1vbnktc3RhdGUtMDAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "stateMismatch"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "state-missing",
+      "description": "No state.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "stateMismatch"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "state-wrong-on-result",
+      "description": "A result carrying another ceremony's state.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=b3RoZXItY2VyZW1vbnktc3RhdGUtMDAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "stateMismatch"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "ceremony-wrong",
+      "description": "A challenge result for a registration ceremony.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "registration",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "ceremony-unknown",
+      "description": "A ceremony value the page never writes.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=authentication&payload=eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-padded",
+      "description": "Padded Base64URL.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=e30=="
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-padded-escaped",
+      "description": "Padding written as a percent escape.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=e30%3D%3D"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-noncanonical-trailing-bits",
+      "description": "Base64URL whose discarded bits are not zero.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=e31"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-standard-alphabet",
+      "description": "The standard alphabet's / instead of _.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJrIjoi////In0"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-empty",
+      "description": "An empty payload.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload="
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-not-utf8",
+      "description": "Bytes that are not UTF-8.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJhIjoiwygifQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-bom",
+      "description": "A UTF-8 byte order mark before the object.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=77u_eyJpZCI6IkFRSURCQSIsInJhd0lkIjoiQVFJREJBIiwidHlwZSI6InB1YmxpYy1rZXkiLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVoyVjBJbjAiLCJhdXRoZW50aWNhdG9yRGF0YSI6IlNaWU41USIsInNpZ25hdHVyZSI6Ik1FVUNJUSJ9fQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-json-array",
+      "description": "A JSON array.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=W10"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-json-string",
+      "description": "A JSON string.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=Ingi"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-json-number",
+      "description": "A JSON number.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=MQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-json-null",
+      "description": "JSON null.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=bnVsbA"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-not-json",
+      "description": "Text that is not JSON.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=e25vdCBqc29ufQ"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-duplicate-top-level-member",
+      "description": "A repeated top-level member: the relayed text keeps both.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ0eXBlIjoicHVibGljLWtleSIsInR5cGUiOiJvdGhlciJ9"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-escaped-top-level-member-name",
+      "description": "A top-level member name written with an escape is refused.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJcdTAwNzR5cGUiOiJwdWJsaWMta2V5In0"
+      },
+      "expected": {
+        "outcome": "protocolError"
+      }
+    },
+    {
+      "id": "payload-empty-object",
+      "description": "The smallest object.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=e30"
+      },
+      "expected": {
+        "outcome": "result",
+        "result": "{}"
+      }
+    },
+    {
+      "id": "callback-at-android-cap",
+      "description": "A callback of exactly 65536 characters.",
+      "input": {
+        "redirectUri": {
+          "concat": [
+            "https://app.example.com/sca/",
+            {
+              "repeat": "p",
+              "count": 1403
+            }
+          ]
+        },
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            {
+              "concat": [
+                "https://app.example.com/sca/",
+                {
+                  "repeat": "p",
+                  "count": 1403
+                }
+              ]
+            },
+            "#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ4Ijoi",
+            {
+              "repeat": "YWFh",
+              "count": 16000
+            },
+            "In0"
+          ]
+        }
+      },
+      "expected": {
+        "outcome": "result",
+        "result": {
+          "concat": [
+            "{\"x\":\"",
+            {
+              "repeat": "a",
+              "count": 48000
+            },
+            "\"}"
+          ]
+        }
+      }
+    },
+    {
+      "id": "callback-over-android-cap",
+      "description": "A callback of 65537 characters: over the Android cap, under the iOS one.",
+      "input": {
+        "redirectUri": {
+          "concat": [
+            "https://app.example.com/sca/",
+            {
+              "repeat": "p",
+              "count": 1404
+            }
+          ]
+        },
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            {
+              "concat": [
+                "https://app.example.com/sca/",
+                {
+                  "repeat": "p",
+                  "count": 1404
+                }
+              ]
+            },
+            "#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ4Ijoi",
+            {
+              "repeat": "YWFh",
+              "count": 16000
+            },
+            "In0"
+          ]
+        }
+      },
+      "expected": {
+        "ios": {
+          "outcome": "result",
+          "result": {
+            "concat": [
+              "{\"x\":\"",
+              {
+                "repeat": "a",
+                "count": 48000
+              },
+              "\"}"
+            ]
+          }
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "payload-60000-bytes",
+      "description": "A 60008-byte payload in an 80 KB callback: within iOS caps, over Android's.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ4Ijoi",
+            {
+              "repeat": "YWFh",
+              "count": 20000
+            },
+            "In0"
+          ]
+        }
+      },
+      "expected": {
+        "ios": {
+          "outcome": "result",
+          "result": {
+            "concat": [
+              "{\"x\":\"",
+              {
+                "repeat": "a",
+                "count": 60000
+              },
+              "\"}"
+            ]
+          }
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "payload-over-ios-cap",
+      "description": "A 66008-byte payload: over the iOS 64 KiB payload cap.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ4Ijoi",
+            {
+              "repeat": "YWFh",
+              "count": 22000
+            },
+            "In0"
+          ]
+        }
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "callback-over-ios-cap",
+      "description": "A callback over 96 KiB.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": {
+          "concat": [
+            "https://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=result&ceremony=challenge&payload=eyJ4Ijoi",
+            {
+              "repeat": "YWFh",
+              "count": 24576
+            },
+            "In0"
+          ]
+        }
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-other-host",
+      "description": "The callback arrived at another host.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://evil.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-other-path",
+      "description": "The callback arrived at another path.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/other#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-path-prefix",
+      "description": "A trailing slash is a different path.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback/#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-other-scheme",
+      "description": "A custom scheme where https was configured.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "acme://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-other-custom-scheme",
+      "description": "Another custom scheme.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "other://cb#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-added-query",
+      "description": "A query the configured URI does not have.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback?x=1#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-no-fragment",
+      "description": "No fragment at all.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-empty-fragment",
+      "description": "An empty fragment.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/sca/callback#"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-default-port",
+      "description": "An explicit :443 is the https default port, so the same target.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com:443/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "target-credentials",
+      "description": "A target carrying credentials, which a configured URI never has.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://user@app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-other-port",
+      "description": "An explicit non-default port is another target.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com:8443/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-uppercase-scheme",
+      "description": "Scheme case does not matter in the incoming callback.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "HTTPS://app.example.com/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "target-uppercase-host",
+      "description": "Host case does not matter in the incoming callback.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://APP.Example.COM/sca/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "target-uppercase-custom-scheme",
+      "description": "Custom scheme case does not matter either.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "ACME://cb#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    },
+    {
+      "id": "target-uppercase-path",
+      "description": "Path case does matter.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/SCA/callback#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "ios": {
+          "outcome": "protocolError"
+        },
+        "android": {
+          "outcome": "ignored"
+        }
+      }
+    },
+    {
+      "id": "target-empty-path-is-slash",
+      "description": "An empty https path equals /.",
+      "input": {
+        "redirectUri": "https://app.example.com",
+        "state": "c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA",
+        "ceremony": "challenge",
+        "callback": "https://app.example.com/#v=1&state=c2NhLWNvbmZvcm1hbmNlLXN0YXRlLTAwMDAwMDAwMDA&kind=error&code=Cancelled"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "Cancelled",
+        "message": null
+      }
+    }
+  ],
+  "redirectUriVectors": {
+    "accept": [
+      {
+        "id": "https",
+        "input": "https://app.example.com/sca/callback"
+      },
+      {
+        "id": "https-root",
+        "input": "https://app.example.com/"
+      },
+      {
+        "id": "https-no-path",
+        "input": "https://app.example.com"
+      },
+      {
+        "id": "https-query-colon",
+        "input": "https://app.example.com/sca?at=10:30"
+      },
+      {
+        "id": "https-query-escaped-quote",
+        "input": "https://app.example.com/sca?name=o%27reilly"
+      },
+      {
+        "id": "https-path-escaped-tilde",
+        "input": "https://app.example.com/%7Euser/sca"
+      },
+      {
+        "id": "https-subdomain-digits",
+        "input": "https://app1.example.com/sca"
+      },
+      {
+        "id": "custom-scheme-host",
+        "input": "acme://cb"
+      },
+      {
+        "id": "custom-scheme-query-quote",
+        "input": "acme://cb?tenant=o'reilly"
+      },
+      {
+        "id": "custom-scheme-reverse-dns",
+        "input": "com.example.app:/sca"
+      },
+      {
+        "id": "custom-scheme-plus-dash",
+        "input": "com.example-app+sca://callback"
+      },
+      {
+        "id": "https-length-2048",
+        "input": {
+          "concat": [
+            "https://app.example.com/",
+            {
+              "repeat": "a",
+              "count": 2024
+            }
+          ]
+        }
+      }
+    ],
+    "reject": [
+      {
+        "id": "fragment",
+        "input": "https://app.example.com/sca#x"
+      },
+      {
+        "id": "fragment-empty",
+        "input": "https://app.example.com/sca#"
+      },
+      {
+        "id": "credentials",
+        "input": "https://user:pass@app.example.com/sca"
+      },
+      {
+        "id": "credentials-user-only",
+        "input": "https://user@app.example.com/sca"
+      },
+      {
+        "id": "uppercase-scheme",
+        "input": "HTTPS://app.example.com/sca"
+      },
+      {
+        "id": "uppercase-custom-scheme",
+        "input": "Acme://cb"
+      },
+      {
+        "id": "uppercase-https-host",
+        "input": "https://App.example.com/sca"
+      },
+      {
+        "id": "leading-space",
+        "input": " https://app.example.com/sca"
+      },
+      {
+        "id": "trailing-space",
+        "input": "https://app.example.com/sca "
+      },
+      {
+        "id": "inner-space",
+        "input": "https://app.example.com/s ca"
+      },
+      {
+        "id": "tab",
+        "input": "https://app.example.com/sca\t"
+      },
+      {
+        "id": "newline",
+        "input": "https://app.example.com/sca\n"
+      },
+      {
+        "id": "nul",
+        "input": "acme://cb\u0000"
+      },
+      {
+        "id": "del",
+        "input": "acme://cb\u007f"
+      },
+      {
+        "id": "non-ascii-path",
+        "input": "https://app.example.com/caf\u00e9"
+      },
+      {
+        "id": "non-ascii-host",
+        "input": "https://b\u00fccher.example.com/sca"
+      },
+      {
+        "id": "non-ascii-custom-scheme",
+        "input": "acme://c\u00e9"
+      },
+      {
+        "id": "scheme-javascript",
+        "input": "javascript://cb"
+      },
+      {
+        "id": "scheme-data",
+        "input": "data://cb"
+      },
+      {
+        "id": "scheme-file",
+        "input": "file:///sca"
+      },
+      {
+        "id": "scheme-intent",
+        "input": "intent://cb"
+      },
+      {
+        "id": "scheme-content",
+        "input": "content://cb"
+      },
+      {
+        "id": "scheme-http",
+        "input": "http://app.example.com/sca"
+      },
+      {
+        "id": "https-port-8443",
+        "input": "https://app.example.com:8443/sca"
+      },
+      {
+        "id": "https-port-443",
+        "input": "https://app.example.com:443/sca"
+      },
+      {
+        "id": "https-port-empty",
+        "input": "https://app.example.com:/sca"
+      },
+      {
+        "id": "dot-segment",
+        "input": "https://app.example.com/a/./sca"
+      },
+      {
+        "id": "dot-dot-segment",
+        "input": "https://app.example.com/a/../sca"
+      },
+      {
+        "id": "trailing-dot-segment",
+        "input": "https://app.example.com/sca/."
+      },
+      {
+        "id": "escaped-dot-lower",
+        "input": "https://app.example.com/a/%2e/sca"
+      },
+      {
+        "id": "escaped-dot-upper",
+        "input": "https://app.example.com/a/%2E/sca"
+      },
+      {
+        "id": "escaped-dot-dot-mixed",
+        "input": "https://app.example.com/a/.%2E/sca"
+      },
+      {
+        "id": "custom-scheme-dot-segment",
+        "input": "acme://cb/../sca"
+      },
+      {
+        "id": "https-query-quote",
+        "input": "https://app.example.com/sca?name=o'reilly"
+      },
+      {
+        "id": "https-host-percent",
+        "input": "https://app%2Eexample.com/sca"
+      },
+      {
+        "id": "https-host-ipv6",
+        "input": "https://[::1]/sca"
+      },
+      {
+        "id": "https-host-ipv4",
+        "input": "https://127.0.0.1/sca"
+      },
+      {
+        "id": "https-host-ipv4-hex",
+        "input": "https://0x7f.1/sca"
+      },
+      {
+        "id": "https-host-numeric-last-label",
+        "input": "https://example.123./sca"
+      },
+      {
+        "id": "https-empty-host",
+        "input": "https:///cb"
+      },
+      {
+        "id": "no-scheme",
+        "input": "//app.example.com/sca"
+      },
+      {
+        "id": "relative",
+        "input": "sca/callback"
+      },
+      {
+        "id": "empty",
+        "input": ""
+      },
+      {
+        "id": "https-length-2049",
+        "input": {
+          "concat": [
+            "https://app.example.com/",
+            {
+              "repeat": "a",
+              "count": 2025
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "platformRules": [
+    {
+      "id": "android-approve-refuses-custom-scheme",
+      "platform": "android",
+      "description": "Android step-up needs a verified https App Link; a custom scheme is accepted for enrollment only.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "ceremony": "challenge"
+      },
+      "expected": "reject"
+    },
+    {
+      "id": "android-enroll-accepts-custom-scheme",
+      "platform": "android",
+      "description": "The same custom scheme is accepted for enrollment.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "ceremony": "registration"
+      },
+      "expected": "accept"
+    },
+    {
+      "id": "android-approve-accepts-https",
+      "platform": "android",
+      "description": "Step-up with an https redirect URI.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "ceremony": "challenge"
+      },
+      "expected": "accept"
+    },
+    {
+      "id": "ios-https-before-17-4",
+      "platform": "ios",
+      "description": "ASWebAuthenticationSession delivers an https callback only from iOS 17.4.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "httpsCallbackAvailable": false
+      },
+      "expected": "httpsCallbackUnavailable"
+    },
+    {
+      "id": "ios-https-from-17-4",
+      "platform": "ios",
+      "description": "From iOS 17.4 the same URI is accepted.",
+      "input": {
+        "redirectUri": "https://app.example.com/sca/callback",
+        "httpsCallbackAvailable": true
+      },
+      "expected": "accept"
+    },
+    {
+      "id": "ios-custom-scheme-before-17-4",
+      "platform": "ios",
+      "description": "A custom scheme needs no OS minimum.",
+      "input": {
+        "redirectUri": "acme://cb",
+        "httpsCallbackAvailable": false
+      },
+      "expected": "accept"
+    }
+  ],
+  "circleOriginVectors": [
+    {
+      "id": "sandbox-default",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": null
+      },
+      "expected": {
+        "outcome": "accept",
+        "origin": "https://daa-sca-sandbox.circle.com"
+      }
+    },
+    {
+      "id": "production-default",
+      "input": {
+        "environment": "production",
+        "circleOrigin": null
+      },
+      "expected": {
+        "outcome": "accept",
+        "origin": "https://daa-sca.circle.com"
+      }
+    },
+    {
+      "id": "sandbox-override",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "accept",
+        "origin": "https://daa-sca-test.circle.com"
+      }
+    },
+    {
+      "id": "sandbox-override-apex",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://circle.com"
+      },
+      "expected": {
+        "outcome": "accept",
+        "origin": "https://circle.com"
+      }
+    },
+    {
+      "id": "production-override",
+      "input": {
+        "environment": "production",
+        "circleOrigin": "https://daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "circleOriginOverrideNotAllowed"
+      }
+    },
+    {
+      "id": "production-override-same-as-default",
+      "input": {
+        "environment": "production",
+        "circleOrigin": "https://daa-sca.circle.com"
+      },
+      "expected": {
+        "outcome": "circleOriginOverrideNotAllowed"
+      }
+    },
+    {
+      "id": "production-override-invalid",
+      "input": {
+        "environment": "production",
+        "circleOrigin": "http://x"
+      },
+      "expected": {
+        "outcome": "circleOriginOverrideNotAllowed"
+      }
+    },
+    {
+      "id": "non-public-environment",
+      "input": {
+        "environment": "nonPublic",
+        "circleOrigin": null
+      },
+      "expected": {
+        "outcome": "unsupportedEnvironment"
+      }
+    },
+    {
+      "id": "non-public-environment-override",
+      "input": {
+        "environment": "nonPublic",
+        "circleOrigin": "https://daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "unsupportedEnvironment"
+      }
+    },
+    {
+      "id": "sandbox-override-http",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "http://daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-uppercase-scheme",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "HTTPS://daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-uppercase-host",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://DAA-SCA-TEST.circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-trailing-slash",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com/"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-path",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com/ceremony"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-query",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com?x=1"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-fragment",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com#x"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-port-443",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com:443"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-port-8443",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com:8443"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-credentials",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://user@daa-sca-test.circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-other-domain",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://example.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-suffix-not-subdomain",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://evilcircle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-circle-com-as-label",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://circle.com.example.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-trailing-dot",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa-sca-test.circle.com."
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-underscore",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa_sca.circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-empty-label",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": "https://daa..circle.com"
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    },
+    {
+      "id": "sandbox-override-empty",
+      "input": {
+        "environment": "sandbox",
+        "circleOrigin": ""
+      },
+      "expected": {
+        "outcome": "invalidCircleOrigin"
+      }
+    }
+  ],
+  "timeoutVectors": {
+    "defaults": {
+      "approveMs": 300000,
+      "enrollMs": 600000
+    },
+    "bounds": {
+      "minimumMs": 30000,
+      "maximumMs": 3600000
+    },
+    "vectors": [
+      {
+        "id": "below-minimum",
+        "input": 29999,
+        "expected": "reject"
+      },
+      {
+        "id": "minimum",
+        "input": 30000,
+        "expected": "accept"
+      },
+      {
+        "id": "approve-default",
+        "input": 300000,
+        "expected": "accept"
+      },
+      {
+        "id": "enroll-default",
+        "input": 600000,
+        "expected": "accept"
+      },
+      {
+        "id": "maximum",
+        "input": 3600000,
+        "expected": "accept"
+      },
+      {
+        "id": "above-maximum",
+        "input": 3600001,
+        "expected": "reject"
+      },
+      {
+        "id": "zero",
+        "input": 0,
+        "expected": "reject"
+      },
+      {
+        "id": "negative-one",
+        "input": -1,
+        "expected": "reject"
+      },
+      {
+        "id": "negative-default",
+        "input": -300000,
+        "expected": "reject"
+      }
+    ]
+  },
+  "errorVocabulary": {
+    "pageCodes": [
+      "Cancelled",
+      "Expired",
+      "Unsupported",
+      "AlreadyEnrolled"
+    ],
+    "sdkLocal": {
+      "ios": [
+        "stateMismatch",
+        "sessionUnavailable",
+        "protocol"
+      ],
+      "android": [
+        "Transport",
+        "Protocol"
+      ]
+    },
+    "notes": "iOS reports Cancelled as DaaScaError.cancelled; Android reports it as DaaScaResult.Cancelled, not a DaaScaError. Neither SDK has a NotEnrolled case."
+  }
+}
