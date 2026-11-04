@@ -1,0 +1,26 @@
+# Swift Package Manager build artifacts. Keep Package.resolved trackable so
+# resolved dependencies can be reviewed by GitHub's dependency graph.
+.build/
+.swiftpm/
+
+# Xcode
+*.xcodeproj
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Native build artifacts
+Pods/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Logs & OS
+*.log
+.DS_Store
+
+# Editor
+.idea/
+*.swp
