@@ -1,0 +1,34 @@
+# SwiftLint configuration for DaaSdk.
+#
+# The rule set is kept small: only high-signal default rules. Run it with
+# `swiftlint lint --strict`, so warning- and error-severity violations both
+# fail the check.
+
+# Lint both SDK source and tests, so test code meets the same rules
+# (`.build` falls outside `included`, so no `excluded` is needed).
+included:
+  - Sources
+  - Tests
+
+# Keep the enabled rule set small and non-opinionated.
+disabled_rules:
+  - todo
+
+# No analyzer or opt-in rules.
+opt_in_rules: []
+
+# File-size ceilings are warnings, which `--strict` turns into failures.
+#
+# Comment-only lines are excluded from the count. Every source file carries an
+# 18-line Apache-2.0 license header, and counting it would shrink the code
+# budget of every file by that much. The ceiling caps how much code lives in
+# one file, so it measures code.
+file_length:
+  warning: 500
+  ignore_comment_only_lines: true
+
+type_body_length:
+  warning: 300
+
+# Emit GitHub Actions annotations so findings surface inline on the PR.
+reporter: "github-actions-logging"
